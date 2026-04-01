@@ -1,0 +1,68 @@
+.gitignore# =========================
+# 🐳 Docker / Imágenes CTF
+# =========================
+*.tar
+*.tar.gz
+*.img
+*.qcow2
+
+# =========================
+# 🧪 Logs y temporales
+# =========================
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# =========================
+# 📦 Archivos generados
+# =========================
+*.pid
+*.out
+*.cache
+
+# =========================
+# 🖥️ Sistema (Linux / WSL / Mac / Windows)
+# =========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================
+# 🔐 Variables de entorno
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# 🧰 IDEs / Editores
+# =========================
+.vscode/
+.idea/
+*.code-workspace
+
+# Vim
+*.un~
+
+# =========================
+# 🐍 Python (por si añades tooling)
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+
+# =========================
+# 📁 Carpetas de laboratorio
+# =========================
+labs/
+machines/
+downloads/
+
+# =========================
+# 🔥 Docker runtime (opcional)
+# =========================
+docker-compose.override.yml
