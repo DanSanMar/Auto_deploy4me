@@ -1,4 +1,4 @@
-# 🚀 Auto-Despliegue de Laboratorios CTF con Docker (WSL2/Linux)
+# 🚀 Auto-Despliegue de Laboratorios CTF con Docker (WSL2/Linux) V2.2
 
 Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables en formato `.tar` usando Docker. Ideal para entornos de práctica CTF en Kali Linux, WSL2 o cualquier sistema basado en Linux.
 
@@ -10,7 +10,6 @@ Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables
 - 🧹 Limpieza previa de contenedores e imágenes
 - ⚙️ Instalación automática de Docker (si no está presente)
 - 🌐 Exposición del servicio en el puerto `8080`
-- 🔁 Sistema de fallback si el contenedor falla al iniciar
 - 🛑 Eliminación completa del entorno con `CTRL + C`
 - 📡 Muestra IP interna y acceso desde host
 
@@ -39,7 +38,7 @@ Si no lo está, lo instala automáticamente
 📥 Carga la imagen Docker desde el .tar
 🚀 Lanza el contenedor:
 Intenta iniciar servicios comunes (apache2, nginx, mariadb)
-🔁 Si falla, aplica un fallback para mantener el contenedor activo
+
 
 🌍 Expone el servicio en:
 
@@ -96,6 +95,14 @@ Laboratorios CTF
 Pentesting práctico
 Entornos de formación en ciberseguridad
 Máquinas dokerlabs / Hack The Box / VulnHub exportadas a .tar
+
+VERSIÓN 2.2
+
+✔ Eliminado el fallback innecesario → script más claro
+✔ $? bien usado → control de errores correcto
+✔ IMAGE_NAME bien definido → sin variables vacías
+✔ Validación de imagen con --format → más precisa
+✔ Flujo simple y determinista → ideal para CTF
 
 
 📄 Licencia
