@@ -7,18 +7,13 @@
 # --- FUNCIONES DE CONTROL ---
 
 detener_y_eliminar_contenedor() {
-    # Extraer nombre base de forma segura para las variables globales
     IMAGE_NAME=${IMAGE_NAME:-$(basename "$TAR_FILE" .tar)}
-    SAFE_NAME=$(echo "$IMAGE_NAME" | tr ':' '_' )
-    CONTAINER_NAME="${SAFE_NAME}_container"
+    CONTAINER_NAME="${IMAGE_NAME}_container"
 
     echo -e "\n\e[1;34m[*] Limpiando entorno...\e[0m"
 
-    # 1. Intentar detener y eliminar el contenedor POR NOMBRE (fuerza bruta)
-    # Usamos || true para que el script no se detenga si el contenedor no existe
     docker rm -f "$CONTAINER_NAME" > /dev/null 2>&1 || true
 
-    # 2. Eliminar la imagen (fuerza bruta para evitar errores de referencia)
     if [ "$(docker images -q "$IMAGE_NAME")" ]; then
         docker rmi -f "$IMAGE_NAME" > /dev/null 2>&1 || true
     fi
@@ -79,21 +74,18 @@ detener_y_eliminar_contenedor
 
 
 # 1. Cargar imagen
-LOAD_OUTPUT=$(docker load -i "$TAR_FILE")
+docker load -i "$TAR_FILE"
 
 if [ $? -eq 0 ]; then
-    # Extraer nombre real
-    IMAGE_NAME=$(echo "$LOAD_OUTPUT" | grep -oP '(?<=Loaded image: ).*')
+   IMAGE_NAME=$(basename "$TAR_FILE" .tar) # Obtiene el nombre del archivo sin la extensión .tar
+   CONTAINER_NAME="${IMAGE_NAME}_container"
 
     # Fallback
     if [ -z "$IMAGE_NAME" ]; then
         IMAGE_NAME=$(basename "$TAR_FILE" .tar)
     fi
 
-   SAFE_NAME=$(echo "$IMAGE_NAME" | tr ':' '_' )
-   CONTAINER_NAME="${SAFE_NAME}_container"
-
-    echo -e "\e[1;34m[*] Lanzando contenedor...\e[0m"
+     echo -e "\e[1;34m[*] Lanzando contenedor...\e[0m"
 	echo
 	echo "IMAGE_NAME=$IMAGE_NAME"
 	echo "CONTAINER_NAME=$CONTAINER_NAME"
@@ -125,8 +117,8 @@ if [ $? -eq 0 ]; then
 
     echo -e "\n\e[1;92m[✔] ¡Máquina vulnerable lista!\e[0m"
     echo -e "\e[1;97m----------------------------------------------------------------------\e[0m"
-    echo -e "\e[1;97m    IP orignen del despliegue de Docker (Kali/WSL2 u otra máquina virutal): ------------------->\e[1;96m $IP_DOCKER\e[0m"
-    echo -e "\e[1;97m    Acceso fuera del host de origen (Linux/Windows: también por: localhost:8080): ------------->\e[1;92m http://$IP_KALI:8080\e[0m"
+    echo -e "\e[1;97m    IP interna de Docker (Kali/WSL2 u otro Linux): -------------------->\e[1;96m $IP_DOCKER\e[0m"
+    echo -e "\e[1;97m    Acceso fuera de WSL2 (Local/Windows,localhost:8080): -------------->\e[1;92m http://$IP_KALI:8080\e[0m"
     echo -e "\e[1;97m----------------------------------------------------------------------\e[0m"
 	echo
 	# Color con parpadeo que he descubierto para llamar la atención
