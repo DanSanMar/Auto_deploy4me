@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF (DOCKER + WSL2) - VERSIÓN 2.1
+# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF (DOCKER + WSL2) - VERSIÓN 2.2
 # ==============================================================================
 
 # --- FUNCIONES DE CONTROL ---
@@ -79,13 +79,8 @@ docker load -i "$TAR_FILE"
 if [ $? -eq 0 ]; then
    IMAGE_NAME=$(basename "$TAR_FILE" .tar) # Obtiene el nombre del archivo sin la extensión .tar
    CONTAINER_NAME="${IMAGE_NAME}_container"
-
-    # Fallback
-    if [ -z "$IMAGE_NAME" ]; then
-        IMAGE_NAME=$(basename "$TAR_FILE" .tar)
-    fi
-
-     echo -e "\e[1;34m[*] Lanzando contenedor...\e[0m"
+   
+    echo -e "\e[1;34m[*] Lanzando contenedor...\e[0m"
 	echo
 	echo "IMAGE_NAME=$IMAGE_NAME"
 	echo "CONTAINER_NAME=$CONTAINER_NAME"
@@ -100,15 +95,9 @@ if [ $? -eq 0 ]; then
   "
     
     sleep 2
-    
-    if ! docker ps | grep -q "$CONTAINER_NAME"; then
-        echo -e "\e[1;33m[!] Contenedor muerto, aplicando fallback...\e[0m"
-        
-        docker rm -f "$CONTAINER_NAME" > /dev/null 2>&1
-    
-        docker run -dit -p 8080:80 --name "$CONTAINER_NAME" "$IMAGE_NAME" sh > /dev/null 2>&1 \
-        || docker run -dit -p 8080:80 --name "$CONTAINER_NAME" "$IMAGE_NAME" /bin/sh > /dev/null 2>&1 \
-        || docker run -dit -p 8080:80 --name "$CONTAINER_NAME" "$IMAGE_NAME" tail -f /dev/null > /dev/null
+
+    if ! docker images --format "{{.Repository}}" | grep -wq "$IMAGE_NAME"; then
+        echo "[!] Advertencia: la imagen cargada no coincide con el nombre esperado"
     fi
 
     # IPs
