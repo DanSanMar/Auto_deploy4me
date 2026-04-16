@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#Script pasado por dos2unix por error en despligues distintos
 # ==============================================================================
 # SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF (DOCKER + WSL2) - VERSIÓN 2.2
 # ==============================================================================
