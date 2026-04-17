@@ -1,4 +1,4 @@
-# 🚀 Auto-Despliegue de Laboratorios CTF con Docker (WSL2/Linux) V2.2
+# 🚀 Auto-Despliegue de Laboratorios CTF con Docker (WSL2/Linux) V3 MULTILAB
 
 Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables en formato `.tar` usando Docker. Ideal para entornos de práctica CTF en Kali Linux, WSL2 o cualquier sistema basado en Linux.
 
