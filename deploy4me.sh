@@ -341,11 +341,11 @@ fi
 IP_DOCKER=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME" 2>/dev/null)
 
 echo -e "\n\e[1;92m[✔] ¡Máquina vulnerable lista!\n\e[0m"
-echo -e "\e[1;97m------------------------------------------------------------------------------------\e[0m"
-echo -e "\e[1;97m  Contenedor cargado: ----------------------------------->\e[1;92m $CONTAINER_NAME\e[0m"
-echo -e "\e[1;97m  IP del laboratorio (para WSL2 o otra VM): ------------->\e[1;96m $IP_DOCKER\e[0m"
-echo -e "\e[1;97m  Redirección automática (para Localhost/Windows): ------>\e[1;92m http://localhost:$PUERTO_LIBRE\e[0m"
-echo -e "\e[1;97m-------------------------------------------------------------------------------------\e[0m"
+echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
+echo -e "\e[1;97m  Contenedor cargado: ------------------------------->\e[1;92m $CONTAINER_NAME\e[0m"
+echo -e "\e[1;97m  IP del laboratorio (para WSL2 o otra VM): --------->\e[1;96m $IP_DOCKER\e[0m"
+echo -e "\e[1;97m  Redirección automática (para Localhost/Windows): -->\e[1;92m http://localhost:$PUERTO_LIBRE\e[0m"
+echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
 echo -e "\n\e[1;5m[Exit] Pulsa Control C para detener el contenedor de ${SCRIPT_NAME} y salir del programa.\n\e[0m"
 
 # Mantener el script vivo
