@@ -36,7 +36,6 @@ sudo ./deploy4me.sh <archivo.tar>
 
 # Ejemplo práctico:
 sudo ./deploy4me.sh candy.tar
----
 
 ```
 
