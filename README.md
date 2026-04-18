@@ -1,7 +1,7 @@
 ##🚀 Auto-Despliegue de Laboratorios CTF con Docker (WSL2/Linux) V4 
-Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables en formato .tar usando Docker. Optimizado específicamente para resolver errores comunes en WSL2, Kali Linux, Debian, Ubuntu y Fedora.
+Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables en formato .tar usando Docker. Optimizado específicamente para resolver errores comunes en WSL2, Kali Linux, Debian, Ubuntu y Fedora.##
 
-#📌 Características
+#📌 Características#
 🔄 Carga inteligente: Parche automático para el error stat /var/lib/docker/tmp.
 
 🔍 Buscador de puertos: Localiza automáticamente un puerto libre entre el 8080 y el 8100.
@@ -14,14 +14,14 @@ Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables
 
 📡 Muestra IP interna y redirección lista para Windows/Host principal.
 
-#🧰 Requisitos
+#🧰 Requisitos#
 Sistema Linux / WSL2 (Ubuntu, Debian, Kali, Fedora, etc.)
 
 Permisos de sudo
 
 Archivo .tar de la máquina vulnerable
 
-#📦 Uso
+#📦 Uso#
 Bash
 chmod +x deploy4me.sh
 sudo ./deploy4me.sh <archivo.tar>
