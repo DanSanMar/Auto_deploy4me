@@ -36,7 +36,11 @@ sudo ./deploy4me.sh <archivo.tar>
 
 # Ejemplo práctico:
 sudo ./deploy4me.sh candy.tar
+---
 
+### Bloque 2 (Funcionamiento y Notas)
+```markdown
+---
 ## ⚙️ ¿Qué hace el script?
 
 * **Validación:** Verifica que se haya proporcionado un archivo `.tar` válido y que el usuario tenga privilegios de administrador.
