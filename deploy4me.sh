@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 4 ROBUSTA
+# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 5 simple
 # ==============================================================================
 # para limpiar la salida:
 stty -echoctl
@@ -292,34 +292,9 @@ fi
 ID_UNICO=$(date +%s)
 CONTAINER_NAME="${IMAGE_NAME//:/_}_${ID_UNICO}" # Reemplaza dos puntos por guiones bajos para el nombre
 
-echo -e "\n\e[1;34m[*] Buscando puerto libre entre 8080 y 8100...\e[0m"
+echo -e "\e[1;34m[*] Lanzando contenedor con el ID: \n\e[0m"
 
-# 2. Búsqueda de puerto libre  usando ss o netstat
-PUERTO_LIBRE=""
-for port in $(seq 8080 8100); do
-    # Intentamos usar 'ss' (común en systemd) o 'netstat' como fallback
-    if command -v ss &> /dev/null; then
-        if ! ss -tuln | grep -q ":$port "; then
-            PUERTO_LIBRE=$port
-            break
-        fi
-    elif command -v netstat &> /dev/null; then
-        if ! netstat -tuln | grep -q ":$port "; then
-            PUERTO_LIBRE=$port
-            break
-        fi
-    else
-        PUERTO_LIBRE=$port
-        break
-    fi
-done
-
-if [ -z "$PUERTO_LIBRE" ]; then
-    echo -e "\n\e[91m[X] No se encontró ningún puerto libre en el rango 8080-8100.\e[0m"
-    exit 1
-fi
-
-echo -e "\n\e[1;34m[*] Puerto libre encontrado: $PUERTO_LIBRE. Lanzando contenedor con el ID: \n\e[0m"
+PUERTO_LIBRE=80
 
 # 3. Ejecutar contenedor
 sudo docker run -d -p $PUERTO_LIBRE:80 --name "$CONTAINER_NAME" "$IMAGE_NAME" \
@@ -342,9 +317,8 @@ IP_DOCKER=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddr
 
 echo -e "\n\e[1;92m[✔] ¡Máquina vulnerable lista!\n\e[0m"
 echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
-echo -e "\e[1;97m  Contenedor cargado: ------------------------------->\e[1;92m $CONTAINER_NAME\e[0m"
-echo -e "\e[1;97m  IP del laboratorio (para WSL2 o otra VM): --------->\e[1;96m $IP_DOCKER\e[0m"
-echo -e "\e[1;97m  Redirección automática (para Localhost/Windows): -->\e[1;92m http://localhost:$PUERTO_LIBRE\e[0m"
+echo -e "\e[1;97m  Contenedor cargado: ------------------------------>\e[1;92m $CONTAINER_NAME\e[0m"
+echo -e "\e[1;97m  IP del laboratorio: ------------------------------>\e[1;96m $IP_DOCKER\e[0m"
 echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
 echo -e "\n\e[1;5m[Exit] Pulsa Control C para detener el contenedor de ${SCRIPT_NAME} y salir del programa.\n\e[0m"
 
