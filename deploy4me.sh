@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 4 ROBUSTA
+# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 5 raw
 # ==============================================================================
 # para limpiar la salida:
 stty -echoctl
@@ -235,7 +235,7 @@ fi
 # --- VARIABLES DINÁMICAS ---
 # Si no se pasa nombre, usa el nombre del archivo sin extensión
 SCRIPT_NAME=$(basename "$TAR_FILE" .tar)
-VERSION="con deploy4me v4.0"
+VERSION="con deploy4me v5.0"
 
 # --- FUNCIÓN DE IMPRESIÓN DEL LOGO ---
 print_logo() {
@@ -260,7 +260,7 @@ print_logo() {
     
     # Línea de información y ayuda
     printf "${CYE}[I]${BLD} Programa desarrollado para desplegar en WSL2 y Kali Linux\n"
-    printf "${CBK}[!] Puedes abrir el navegador desde la terminal o usar la redirección automática del puerto 80 desde tu equipo principal${CNC}\n"
+    printf "${CBK}[!] Recuerda!! Puedes abrir tu navegador desde la terminal de WSL2 para ver el puerto 80 del contenedor${CNC}\n"
     
 }
 
@@ -271,58 +271,31 @@ print_logo
 
 echo -e "\e[1;93m\n[*] Cargando imagen desde: $TAR_FILE\n\e[0m"
 
-# --- Antes del docker load ---
-echo -e "\n${CBL}[*]${CNC} Preparando entorno de carga..."
-sudo mkdir -p /var/lib/docker/tmp
-sudo chmod 1777 /var/lib/docker/tmp
-# 1. Cargar imagen
+# 1. Cargar imagen (Tu lógica original)
 if ! sudo docker load -i "$TAR_FILE"; then
     echo -e "\n\e[91m\n[X] Error fatal al cargar el .tar. Revisa el archivo.\e[0m"
     exit 1
 fi
 
+# 2. Definición de variables (Plan B directo como pediste)
 IMAGE_REPO=$(basename "$TAR_FILE" .tar)
 IMAGE_NAME="${IMAGE_REPO}:latest"
 
-if ! docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
+# Verificamos con sudo para que no diga que no existe por falta de permisos
+if ! sudo docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
     echo -e "\e[91m[X] La imagen $IMAGE_NAME no se encontró tras cargar.\e[0m"
     exit 1
 fi
 
 ID_UNICO=$(date +%s)
-CONTAINER_NAME="${IMAGE_NAME//:/_}_${ID_UNICO}" # Reemplaza dos puntos por guiones bajos para el nombre
+# Usamos el nombre del repo directamente para el contenedor, quitando caracteres que no sean letras o números
+CONTAINER_NAME_BASE=$(echo "$IMAGE_REPO" | sed 's/[^a-zA-Z0-9]//g')
+CONTAINER_NAME="${CONTAINER_NAME_BASE}_${ID_UNICO}" 
 
-echo -e "\n\e[1;34m[*] Buscando puerto libre entre 8080 y 8100...\e[0m"
+echo -e "\n\e[1;34m[*] Lanzando contenedor con el ID: $CONTAINER_NAME\n\e[0m"
 
-# 2. Búsqueda de puerto libre  usando ss o netstat
-PUERTO_LIBRE=""
-for port in $(seq 8080 8100); do
-    # Intentamos usar 'ss' (común en systemd) o 'netstat' como fallback
-    if command -v ss &> /dev/null; then
-        if ! ss -tuln | grep -q ":$port "; then
-            PUERTO_LIBRE=$port
-            break
-        fi
-    elif command -v netstat &> /dev/null; then
-        if ! netstat -tuln | grep -q ":$port "; then
-            PUERTO_LIBRE=$port
-            break
-        fi
-    else
-        PUERTO_LIBRE=$port
-        break
-    fi
-done
-
-if [ -z "$PUERTO_LIBRE" ]; then
-    echo -e "\n\e[91m[X] No se encontró ningún puerto libre en el rango 8080-8100.\e[0m"
-    exit 1
-fi
-
-echo -e "\n\e[1;34m[*] Puerto libre encontrado: $PUERTO_LIBRE. Lanzando contenedor con el ID: \n\e[0m"
-
-# 3. Ejecutar contenedor
-sudo docker run -d -p $PUERTO_LIBRE:80 --name "$CONTAINER_NAME" "$IMAGE_NAME" \
+# 3. Ejecutar contenedor (Tu bloque original de servicios)
+sudo docker run -d -p 80 --name "$CONTAINER_NAME" "$IMAGE_NAME" \
     /bin/bash -c "
     service apache2 start 2>/dev/null || true;
     service nginx start 2>/dev/null || true;
@@ -341,11 +314,10 @@ fi
 IP_DOCKER=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME" 2>/dev/null)
 
 echo -e "\n\e[1;92m[✔] ¡Máquina vulnerable lista!\n\e[0m"
-echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
-echo -e "\e[1;97m  Contenedor cargado: ------------------------------->\e[1;92m $CONTAINER_NAME\e[0m"
-echo -e "\e[1;97m  IP del laboratorio (para WSL2 o otra VM): --------->\e[1;96m $IP_DOCKER\e[0m"
-echo -e "\e[1;97m  Redirección automática (para Localhost/Windows): -->\e[1;92m http://localhost:$PUERTO_LIBRE\e[0m"
-echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
+echo -e "\e[1;97m-----------------------------------------------------------------------\e[0m"
+echo -e "\e[1;97m  Contenedor cargado: ------------------>\e[1;92m $CONTAINER_NAME\e[0m"
+echo -e "\e[1;97m  IP de la máquina vulnerable: --------->\e[1;96m $IP_DOCKER\e[0m"
+echo -e "\e[1;97m-----------------------------------------------------------------------\e[0m"
 echo -e "\n\e[1;5m[Exit] Pulsa Control C para detener el contenedor de ${SCRIPT_NAME} y salir del programa.\n\e[0m"
 
 # Mantener el script vivo
