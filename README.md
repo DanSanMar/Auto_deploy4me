@@ -1,109 +1,71 @@
-# 🚀 Auto-Despliegue de Laboratorios CTF con Docker (WSL2/Linux) V3 MULTILAB
+# 🚀 Auto-Despliegue de Laboratorios CTF con Docker (WSL2/Linux) V5 simple
 
-Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables en formato `.tar` usando Docker. Ideal para entornos de práctica CTF en Kali Linux, WSL2 o cualquier sistema basado en Linux.
+Script en Bash diseñado para automatizar el despliegue de máquinas vulnerables en formato `.tar` usando Docker. Optimizado específicamente para resolver errores comunes en **WSL2, Kali Linux, Debian, Ubuntu y Fedora**.
 
 ---
 
 ## 📌 Características
 
-- 🔄 Carga automática de imágenes Docker desde `.tar`
-- 🧹 Limpieza previa de contenedores e imágenes
-- ⚙️ Instalación automática de Docker (si no está presente)
-- 🌐 Exposición del servicio en el puerto `8080`
-- 🛑 Eliminación completa del entorno con `CTRL + C`
-- 📡 Muestra IP interna y acceso desde host
+* 🔄 **Carga inteligente:** Parche automático para el error `stat /var/lib/docker/tmp`.
+* 🛠️ **Multi-Distro:** Soporte de instalación automática para sistemas basados en **Debian (Apt)** y **Fedora (Dnf)**.
+* ⚙️ **Auto-Gestión de Servicios:** Inicia el demonio de Docker automáticamente en entornos sin Systemd (como WSL2 estándar).
+* 🛑 **Limpieza Total:** Al pulsar `CTRL + C`, el contenedor se detiene y se elimina automáticamente.
+* 📡 **Información de Red:** Muestra la IP y los datos del contenedor desplegado.
 
 ---
 
 ## 🧰 Requisitos
 
-- Sistema Linux / WSL2
-- Permisos de `sudo`
-- Archivo `.tar` de la máquina vulnerable
+* Sistema Linux / WSL2 (Ubuntu, Debian, Kali, Fedora, etc.).
+* Permisos de **sudo**.
+* Archivo `.tar` de la máquina vulnerable (DockerLabs o similar).
 
 ---
 
 ## 📦 Uso
 
+Para ejecutar el script, utiliza los siguientes comandos en tu terminal:
+
 ```bash
+# 1. Dar permisos de ejecución
 chmod +x deploy4me.sh
-./deploy4me.sh <archivo.tar>
-Ejemplo:
-./deploy4me.sh maquina_ctf.tar
-⚙️ ¿Qué hace el script?
-✅ Verifica que se haya proporcionado un archivo .tar
-🔍 Comprueba si Docker está instalado
-Si no lo está, lo instala automáticamente
-🧹 Elimina contenedores/imágenes previas con el mismo nombre
-📥 Carga la imagen Docker desde el .tar
-🚀 Lanza el contenedor:
-Intenta iniciar servicios comunes (apache2, nginx, mariadb)
 
+# 2. Ejecutar el despliegue con privilegios de sudo
+sudo ./deploy4me.sh <archivo.tar>
 
-🌍 Expone el servicio en:
+# Ejemplo práctico:
+sudo ./deploy4me.sh candy.tar
 
-http://localhost:8080
-📡 Muestra:
-IP interna del contenedor
-IP accesible desde la máquina host
-🌐 Acceso al laboratorio
+```
 
-Una vez desplegado:
+## ⚙️ ¿Qué hace el script?
 
-Desde la misma máquina:
+* **Validación:** Verifica que se haya proporcionado un archivo `.tar` válido y que el usuario tenga privilegios de administrador.
+* **Entorno Docker:** * Si no detecta Docker, lo instala automáticamente según la distribución.
+    * Configura el grupo de usuario y repara permisos del socket (`docker.sock`).
+    * Crea y otorga permisos al directorio `/var/lib/docker/tmp` para evitar fallos de carga.
+* **Despliegue:**
+    * Carga la imagen Docker directamente desde el archivo `.tar`.
+    * Lanza el contenedor e inicia servicios críticos como **Apache2, Nginx, MariaDB o MySQL**.
+---
 
-http://localhost:8080
+## 🛑 Detener el laboratorio
 
-Desde otra máquina en la red:
+Para finalizar la sesión de práctica, simplemente presiona: **`CTRL + C`**
 
-http://<IP_HOST>:8080
-🛑 Detener el laboratorio
+El script activará automáticamente una función de limpieza que:
+1.  🛑 **Detiene** el contenedor en ejecución de forma segura.
+2.  🗑️ **Elimina** el contenedor para liberar recursos del sistema y evitar conflictos futuros.
 
-Simplemente presiona:
+---
 
-CTRL + C
+## 🧠 Notas técnicas (Versión 5.0)
 
-El script automáticamente:
+* **Compatibilidad WSL2:** Implementa un sistema *fallback* que utiliza `service docker start` si detecta la ausencia de `systemctl`.
+* **Robustez de Carga:** La aplicación de permisos `1777` al directorio de Docker previene el error crítico de carga en instalaciones frescas.
 
-🛑 Detiene el contenedor
-🗑️ Elimina el contenedor
-❌ Elimina la imagen Docker
-🧠 Notas técnicas
-El nombre del contenedor se genera automáticamente a partir del nombre de la imagen
-Se reemplazan : por _ para evitar errores
-Se usan múltiples estrategias de arranque:
-/bin/bash
-sh
-/bin/sh
-tail -f /dev/null
-⚠️ Posibles problemas
-Docker no se instala correctamente
+---
 
-Ejecuta manualmente:
+## 📄 Licencia
 
-sudo apt update
-sudo apt install docker.io -y
-sudo systemctl enable --now docker
-El contenedor no responde en el puerto 8080
-Verifica que el servicio web esté activo dentro del contenedor
-
-Comprueba puertos ocupados:
-
-sudo lsof -i :8080
-🧪 Uso recomendado
-Laboratorios CTF
-Pentesting práctico
-Entornos de formación en ciberseguridad
-Máquinas dokerlabs / Hack The Box / VulnHub exportadas a .tar
-
-VERSIÓN 2.2
-
-✔ Eliminado el fallback innecesario → script más claro
-✔ $? bien usado → control de errores correcto
-✔ IMAGE_NAME bien definido → sin variables vacías
-✔ Validación de imagen con --format → más precisa
-✔ Flujo simple y determinista → ideal para CTF
-
-
-📄 Licencia
-Uso libre para fines educativos y de investigación.
+Uso libre para fines educativos, entrenamiento en ciberseguridad y para toda la comunidad de **DockerLabs**.

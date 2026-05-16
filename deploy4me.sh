@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # ==============================================================================
+<<<<<<< HEAD
 # SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 5 raw
+=======
+# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 5 simple
+>>>>>>> d5434f96e364575184b7424b9833d0fc63d688c1
 # ==============================================================================
 # para limpiar la salida:
 stty -echoctl
@@ -292,10 +296,19 @@ ID_UNICO=$(date +%s)
 CONTAINER_NAME_BASE=$(echo "$IMAGE_REPO" | sed 's/[^a-zA-Z0-9]//g')
 CONTAINER_NAME="${CONTAINER_NAME_BASE}_${ID_UNICO}" 
 
+<<<<<<< HEAD
 echo -e "\n\e[1;34m[*] Lanzando contenedor con el ID: $CONTAINER_NAME\n\e[0m"
 
 # 3. Ejecutar contenedor (Tu bloque original de servicios)
 sudo docker run -d -p 80 --name "$CONTAINER_NAME" "$IMAGE_NAME" \
+=======
+echo -e "\e[1;34m[*] Lanzando contenedor con el ID: \n\e[0m"
+
+PUERTO_LIBRE=80
+
+# 3. Ejecutar contenedor
+sudo docker run -d -p $PUERTO_LIBRE:80 --name "$CONTAINER_NAME" "$IMAGE_NAME" \
+>>>>>>> d5434f96e364575184b7424b9833d0fc63d688c1
     /bin/bash -c "
     service apache2 start 2>/dev/null || true;
     service nginx start 2>/dev/null || true;
@@ -314,10 +327,17 @@ fi
 IP_DOCKER=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME" 2>/dev/null)
 
 echo -e "\n\e[1;92m[✔] ¡Máquina vulnerable lista!\n\e[0m"
+<<<<<<< HEAD
 echo -e "\e[1;97m-----------------------------------------------------------------------\e[0m"
 echo -e "\e[1;97m  Contenedor cargado: ------------------>\e[1;92m $CONTAINER_NAME\e[0m"
 echo -e "\e[1;97m  IP de la máquina vulnerable: --------->\e[1;96m $IP_DOCKER\e[0m"
 echo -e "\e[1;97m-----------------------------------------------------------------------\e[0m"
+=======
+echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
+echo -e "\e[1;97m  Contenedor cargado: ------------------------------>\e[1;92m $CONTAINER_NAME\e[0m"
+echo -e "\e[1;97m  IP del laboratorio: ------------------------------>\e[1;96m $IP_DOCKER\e[0m"
+echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
+>>>>>>> d5434f96e364575184b7424b9833d0fc63d688c1
 echo -e "\n\e[1;5m[Exit] Pulsa Control C para detener el contenedor de ${SCRIPT_NAME} y salir del programa.\n\e[0m"
 
 # Mantener el script vivo
