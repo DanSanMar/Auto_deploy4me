@@ -1,11 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-<<<<<<< HEAD
 # SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 5 raw
-=======
-# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 5 simple
->>>>>>> d5434f96e364575184b7424b9833d0fc63d688c1
 # ==============================================================================
 # para limpiar la salida:
 stty -echoctl
