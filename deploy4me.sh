@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # ==============================================================================
-# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 5 raw
+# SCRIPT DE AUTO-DESPLIEGUE PARA LABORATORIOS CTF - (DOCKER + WSL2) - VERSIÓN 6
 # ==============================================================================
-# para limpiar la salida:
 stty -echoctl
-# --- FUNCIONES DE CONTROL ---
+
 # --- DEFINICIÓN DE COLORES ---
 CRE='\033[31m'; CYE='\033[33m'; CGR='\033[32m'; CBL='\033[34m'
 CBLE='\033[36m'; CBK='\033[37m'; CGY='\033[90m'; BLD='\033[1m'; CNC='\033[0m'
@@ -13,7 +12,7 @@ CBLE='\033[36m'; CBK='\033[37m'; CGY='\033[90m'; BLD='\033[1m'; CNC='\033[0m'
 detener_y_eliminar_contenedor() {
     if [ -n "$CONTAINER_NAME" ]; then
         echo -e "\n\e[1;34m[*] Limpiando entorno del contenedor: $CONTAINER_NAME...\e[0m"
-        docker rm -f "$CONTAINER_NAME" > /dev/null 2>&1 || true
+        sudo docker rm -f "$CONTAINER_NAME" > /dev/null 2>&1 || true
         echo -e "\n\e[1;32m[+] Contenedor $CONTAINER_NAME eliminado con éxito.\e[0m"
         echo -e "\n\e[1;34m[!] Gracias por usar DOCKERLABS con deploy4me, bye bye!\e[0m"
     fi
@@ -28,28 +27,21 @@ function ctrl_c() {
 }
 
 # --- VALIDACIONES INICIALES ---
-
 if [ $# -ne 1 ]; then
     echo -e "\e[1;31m[!] Error: Debes proporcionar el archivo .tar\e[0m"
     echo "Uso: $0 <archivo_tar>"
     exit 1
 fi
 
-# --- COMPROBACIÓN E INSTALACIÓN DE DOCKER ---
-
 check_docker_installed() {
     command -v docker &> /dev/null
 }
 
-# --- GESTOR DE SERVICIOS (COMPATIBILIDAD VMS y WSL2) ---
-
 start_docker_service() {
-    # Comprueba si systemd está en uso
     if [ -d /run/systemd/system ]; then
         sudo systemctl enable docker 2>/dev/null || true
         sudo systemctl start docker 2>/dev/null || true
     else
-        # Fallback para WSL2 u otros sistemas usando init.d
         sudo service docker start 2>/dev/null || true
     fi
 }
@@ -61,8 +53,6 @@ is_docker_running() {
         sudo service docker status 2>/dev/null | grep -qE "is running|start/running"
     fi
 }
-
-# --------------------------------------------------------
 
 install_docker_debian_based() {
     echo -e "\n${CGR}[INSTALACIÓN]${CNC} Detectado: Sistema basado en Debian/Ubuntu/Kali"
@@ -76,11 +66,10 @@ install_docker_debian_based() {
     echo -e "${CBL}[PASO 2/4]${CNC} Instalando Docker.io..."
     echo -e "${CGY}(Esto puede tardar unos minutos...)${CNC}\n"
     
-    # Instalación con retroalimentación visible
     sudo apt install docker.io -y 2>&1 | while read line; do
         echo -e -n "${CBLE}.${CNC}"
     done
-    echo "" # Salto de línea limpio
+    echo ""
     
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
         echo -e "${CRE}[ERROR]${CNC} Fallo al instalar Docker.io."
@@ -89,7 +78,6 @@ install_docker_debian_based() {
     
     echo -e "\n${CBL}[PASO 3/4]${CNC} Habilitando servicio Docker..."
     start_docker_service
-    
     echo -e "${CBL}[PASO 4/4]${CNC} Verificando instalación..."
     sleep 2
 }
@@ -97,8 +85,6 @@ install_docker_debian_based() {
 install_docker_fedora_based() {
     echo -e "\n${CGR}[INSTALACIÓN]${CNC} Detectado: Sistema basado en Fedora/RHEL/CentOS"
     echo -e "${CBL}[PASO 1/4]${CNC} Actualizando repositorios..."
-    
-    # SOLUCIÓN: Usar makecache en lugar de check-update
     sudo dnf makecache 2>&1 | tee /tmp/dnf_update.log
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
         echo -e "${CRE}[ERROR]${CNC} Fallo al actualizar repositorios."
@@ -108,13 +94,11 @@ install_docker_fedora_based() {
     echo -e "${CBL}[PASO 2/4]${CNC} Instalando Docker..."
     echo -e "${CGY}(Esto puede tardar unos minutos...)${CNC}\n"
     
-    # Se usa -n para imprimir los puntos en la misma línea
     sudo dnf install docker -y 2>&1 | while read line; do
         echo -e -n "${CBLE}.${CNC}"
     done
-    echo "" # Salto de línea para limpiar la terminal
+    echo ""
     
-    # Comprobación de la instalación
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
         echo -e "${CRE}[ERROR]${CNC} Fallo al instalar Docker."
         return 1
@@ -122,26 +106,17 @@ install_docker_fedora_based() {
     
     echo -e "\n${CBL}[PASO 3/4]${CNC} Habilitando servicio Docker..."
     start_docker_service
-    
     echo -e "${CBL}[PASO 4/4]${CNC} Verificando instalación..."
     sleep 2
 }
-
-# --- DETECCIÓN DE DISTRIBUCIÓN ---
 
 detect_distribution() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         case "$ID" in
-            debian|ubuntu|kali|linuxmint|pop)
-                echo "debian"
-                ;;
-            fedora|rhel|centos|rocky|almalinux)
-                echo "fedora"
-                ;;
-            *)
-                echo "unknown"
-                ;;
+            debian|ubuntu|kali|linuxmint|pop) echo "debian" ;;
+            fedora|rhel|centos|rocky|almalinux) echo "fedora" ;;
+            *) echo "unknown" ;;
         esac
     else
         echo "unknown"
@@ -149,7 +124,6 @@ detect_distribution() {
 }
 
 # --- EJECUCIÓN PRINCIPAL DE INSTALACIÓN ---
-
 if ! check_docker_installed; then
     echo -e "\n${CRE}[⚠]${CNC} Docker no está instalado en tu sistema."
     echo -e "${CYE}[?]${CNC} ¿Deseas instalarlo ahora? (s/n)"
@@ -157,92 +131,63 @@ if ! check_docker_installed; then
     
     if [[ "$INSTALL_CONFIRM" =~ ^[SsYy]$ ]]; then
         DISTRO_TYPE=$(detect_distribution)
-        
         echo -e "\n${CGR}[✓]${CNC} Iniciando instalación de Docker..."
         echo -e "${CBLE}----------------------------------------${CNC}\n"
         
         case "$DISTRO_TYPE" in
-            debian)
-                install_docker_debian_based || exit 1
-                ;;
-            fedora)
-                install_docker_fedora_based || exit 1
-                ;;
+            debian) install_docker_debian_based || exit 1 ;;
+            fedora) install_docker_fedora_based || exit 1 ;;
             *)
                 echo -e "${CRE}[ERROR]${CNC} Distribución no soportada automáticamente."
-                echo -e "${CYE}[INFO]${CNC} Por favor, instala Docker manualmente siguiendo:"
-                echo -e "${CBLE}https://docs.docker.com/engine/install/${CNC}\n"
                 exit 1
                 ;;
         esac
         
-        # Verificación final
         if check_docker_installed; then
             echo -e "\n${CGR}[✓]${CNC} Docker instalado correctamente."
-            # Dar permisos al socket para evitar errores de "permission denied" sin cerrar sesión
             sudo chmod 666 /var/run/docker.sock 2>/dev/null || true
-            # Añadir usuario al grupo docker si es necesario
-            if id -nG "$USER" | grep -qw "docker"; then
-                echo -e "${CGR}[✓]${CNC} Usuario ya pertenece al grupo docker."
-            else
-                echo -e "${CYE}[!]${CNC} Agregando usuario '$USER' al grupo docker..."
-                # Creamos el grupo por si acaso (muy común en WSL)
+            if ! id -nG "$USER" | grep -qw "docker"; then
                 sudo groupadd docker 2>/dev/null || true
                 sudo usermod -aG docker "$USER"
-                echo -e "${CYE}[INFO]${CNC} Debes reiniciar tu sesión/terminal para aplicar los cambios de grupo."
             fi
-            
             echo -e "${CBLE}----------------------------------------${CNC}\n"
             sleep 2
         else
-            echo -e "\n${CRE}[✗]${CNC} Error: Docker no se pudo instalar correctamente."
-            echo -e "${CYE}[INFO]${CNC} Revisa los logs anteriores para diagnosticar el problema."
+            echo -e "\n${CRE}[✗]${CNC} Error: Docker no se pudo instalar."
             exit 1
         fi
     else
-        echo -e "\n${CRE}[✗]${CNC} Docker es requerido para continuar."
-        echo -e "${CYE}[INFO]${CNC} Instala Docker manualmente y vuelve a ejecutar el script."
         exit 1
     fi
 else
     echo -e "\n${CGR}[✓]${CNC} Docker ya está instalado (${CBL}$(docker --version | cut -d' ' -f3)${CNC})"
 fi
 
-# Verificar que el servicio esté corriendo independientemente del entorno
 if ! is_docker_running; then
-    echo -e "${CYE}[!]${CNC} Servicio Docker no está activo. Intentando iniciarlo..."
     start_docker_service
     sleep 3
-    
     if ! is_docker_running; then
         echo -e "${CRE}[✗]${CNC} Error: No se pudo iniciar el servicio Docker."
-        echo -e "${CYE}[INFO]${CNC} Si estás en WSL2, asegúrate de haber ejecutado el script o iniciado Docker de forma compatible."
         exit 1
     fi
 fi
 
 echo -e "${CGR}[✓]${CNC} Servicio Docker activado y en ejecución."
 
-
 TAR_FILE="$1"
-
 if [ ! -f "$TAR_FILE" ]; then
     echo -e "\e[1;31m[!] Error: El archivo '$TAR_FILE' no existe.\e[0m"
     exit 1
 fi
 
-
-# --- VARIABLES DINÁMICAS ---
-# Si no se pasa nombre, usa el nombre del archivo sin extensión
 SCRIPT_NAME=$(basename "$TAR_FILE" .tar)
-VERSION="con deploy4me v5.0"
+VERSION="con deploy4me v6.0 Robust"
 
-# --- FUNCIÓN DE IMPRESIÓN DEL LOGO ---
 print_logo() {
     printf "\n"
-    printf "\t                   ${CRE} ##       ${CBK} .         \n"
-    printf "\t             ${CRE} ## ## ##      ${CBK} ==         \n"
-    printf "\t           ${CRE}## ## ## ##      ${CBK}===         \n"
+    printf "\t                       ${CRE} ##       ${CBK} .         \n"
+    printf "\t                 ${CRE} ## ## ##      ${CBK} ==         \n"
+    printf "\t               ${CRE}## ## ## ##      ${CBK}===         \n"
     printf "\t       ${CBLE}/\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\\\___/ ${CBL}===       \n"
     printf "\t  ${CBL}~~~ ${CBK}{${CBL}~~ ~~~~ ~~~ ~~~~ ~~ ~ ${CBK}/  ${CYE}- ${CBL}===- ${CBL}~~~${CBK}\n"
     printf "\t       \\______${CBK} o ${CBK}         __/           \n"
@@ -255,66 +200,48 @@ print_logo() {
     printf "  |__/ |__| |___ | \\_ |___ |  \\ |___ |  | |__] ___] \n"
     printf "${CNC}                                          \n"
     printf "\n"
-    # Línea de estado y nombre del script
-    printf "${CGR}[✔]${CNC} Lanzando [${BLD}${CBLE}${SCRIPT_NAME}${CNC}${BLD}]${CNC} ${VERSION}${CNC} - Solo será un momento...\n"
-    
-    # Línea de información y ayuda
-    printf "${CYE}[I]${BLD} Programa desarrollado para desplegar en WSL2 y Kali Linux\n"
-    printf "${CBK}[!] Recuerda!! Puedes abrir tu navegador desde la terminal de WSL2 para ver el puerto 80 del contenedor${CNC}\n"
-    
+    printf "${CGR}[✔]${CNC} Lanzando [${BLD}${CBLE}${SCRIPT_NAME}${CNC}${BLD}]${CNC} ${VERSION}${CNC}...\n"
 }
 
-# Ejecutar logo
 print_logo
-
-# --- DESPLIEGUE ---
 
 echo -e "\e[1;93m\n[*] Cargando imagen desde: $TAR_FILE\n\e[0m"
 
-# 1. Cargar imagen (Tu lógica original)
+# 1. Cargar imagen
 if ! sudo docker load -i "$TAR_FILE"; then
     echo -e "\n\e[91m\n[X] Error fatal al cargar el .tar. Revisa el archivo.\e[0m"
     exit 1
 fi
 
-# 2. Definición de variables (Plan B directo como pediste)
 IMAGE_REPO=$(basename "$TAR_FILE" .tar)
 IMAGE_NAME="${IMAGE_REPO}:latest"
 
-# Verificamos con sudo para que no diga que no existe por falta de permisos
 if ! sudo docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
     echo -e "\e[91m[X] La imagen $IMAGE_NAME no se encontró tras cargar.\e[0m"
     exit 1
 fi
 
 ID_UNICO=$(date +%s)
-# Usamos el nombre del repo directamente para el contenedor, quitando caracteres que no sean letras o números
 CONTAINER_NAME_BASE=$(echo "$IMAGE_REPO" | sed 's/[^a-zA-Z0-9]//g')
 CONTAINER_NAME="${CONTAINER_NAME_BASE}_${ID_UNICO}" 
 
-<<<<<<< HEAD
-echo -e "\n\e[1;34m[*] Lanzando contenedor con el ID: $CONTAINER_NAME\n\e[0m"
+echo -e "\e[1;34m[*] Analizando y ejecutando Entrypoint original...\e[0m"
 
-# 3. Ejecutar contenedor (Tu bloque original de servicios)
-sudo docker run -d -p 80 --name "$CONTAINER_NAME" "$IMAGE_NAME" \
-=======
-echo -e "\e[1;34m[*] Lanzando contenedor con el ID: \n\e[0m"
-
-PUERTO_LIBRE=80
-
-# 3. Ejecutar contenedor
-sudo docker run -d -p $PUERTO_LIBRE:80 --name "$CONTAINER_NAME" "$IMAGE_NAME" \
->>>>>>> d5434f96e364575184b7424b9833d0fc63d688c1
-    /bin/bash -c "
-    service apache2 start 2>/dev/null || true;
-    service nginx start 2>/dev/null || true;
-    service mariadb start 2>/dev/null || true;
-    service mysql start 2>/dev/null || true;
-    while true; do sleep 60; done
-    "
+# ==============================================================================
+# CAMBIO CLAVE: Ejecutamos el contenedor respetando su configuración nativa.
+# Mapeamos puertos comunes y dejamos que Docker ejecute el CMD/ENTRYPOINT original.
+# ==============================================================================
+sudo docker run -d \
+    -p 80:80 \
+    -p 443:443 \
+    -p 21:21 \
+    -p 22:22 \
+    -p 3306:3306 \
+    -p 8080:8080 \
+    --name "$CONTAINER_NAME" "$IMAGE_NAME"
 
 if [ $? -ne 0 ]; then
-    echo -e "\e[91m\n[X] Error al iniciar el contenedor. Revisa los logs de Docker.\e[0m"
+    echo -e "\e[91m\n[X] Error al iniciar el contenedor. Revisa los logs de Docker o conflictos de puertos.\e[0m"
     detener_y_eliminar_contenedor
     exit 1
 fi
@@ -323,18 +250,11 @@ fi
 IP_DOCKER=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME" 2>/dev/null)
 
 echo -e "\n\e[1;92m[✔] ¡Máquina vulnerable lista!\n\e[0m"
-<<<<<<< HEAD
-echo -e "\e[1;97m-----------------------------------------------------------------------\e[0m"
-echo -e "\e[1;97m  Contenedor cargado: ------------------>\e[1;92m $CONTAINER_NAME\e[0m"
-echo -e "\e[1;97m  IP de la máquina vulnerable: --------->\e[1;96m $IP_DOCKER\e[0m"
-echo -e "\e[1;97m-----------------------------------------------------------------------\e[0m"
-=======
 echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
 echo -e "\e[1;97m  Contenedor cargado: ------------------------------>\e[1;92m $CONTAINER_NAME\e[0m"
-echo -e "\e[1;97m  IP del laboratorio: ------------------------------>\e[1;96m $IP_DOCKER\e[0m"
+echo -e "\e[1;97m  IP del laboratorio (Local Docker): --------------->\e[1;96m $IP_DOCKER\e[0m"
+echo -e "\e[1;97m  Puertos expuestos en localhost: ------------------>\e[1;33m 21, 22, 80, 443, 3306, 8080\e[0m"
 echo -e "\e[1;97m--------------------------------------------------------------------------------\e[0m"
->>>>>>> d5434f96e364575184b7424b9833d0fc63d688c1
 echo -e "\n\e[1;5m[Exit] Pulsa Control C para detener el contenedor de ${SCRIPT_NAME} y salir del programa.\n\e[0m"
 
-# Mantener el script vivo
 while true; do sleep 1; done
